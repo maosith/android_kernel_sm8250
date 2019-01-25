@@ -105,9 +105,6 @@
 #include "avc_ss.h"
 
 
-
-struct selinux_state selinux_state __rticdata;
-
 struct selinux_state selinux_state;
 
 
