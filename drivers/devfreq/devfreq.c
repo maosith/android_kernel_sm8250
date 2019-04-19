@@ -1269,6 +1269,10 @@ static ssize_t max_freq_store(struct device *dev, struct device_attribute *attr,
 	unsigned long value;
 	int ret;
 
+	/* Minfreq is managed by devfreq_boost */
+	if (df->is_boost_device)
+		return count;
+
 	ret = sscanf(buf, "%lu", &value);
 	if (ret != 1)
 		return -EINVAL;
