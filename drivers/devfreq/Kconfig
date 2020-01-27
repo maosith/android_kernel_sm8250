@@ -274,6 +274,7 @@ config DEVFREQ_WAKE_BOOST_DURATION_MS
 
 
 
+
 config DEVFREQ_CPU_LLCC_DDR_BW_BOOST_FREQ
 	int "Boost freq for cpu-llcc-ddr-bw device"
 
@@ -283,6 +284,10 @@ config DEVFREQ_MSM_CPUBW_BOOST_FREQ
 
 config DEVFREQ_MSM_CPUBW_BOOST_FREQ
 	int "Boost freq for cpubw device"
+
+
+config DEVFREQ_MSM_LLCCBW_DDR_BOOST_FREQ
+	int "Boost freq for llccbw-ddr device"
 
 	default "0"
 	help

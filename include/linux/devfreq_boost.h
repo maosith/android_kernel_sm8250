@@ -7,9 +7,8 @@
 
 #include <linux/devfreq.h>
 
-enum df_device {
-	DEVFREQ_CPU_LLCC_DDR_BW,
-	DEVFREQ_MSM_CPUBW,
+enum df_device {	
+	DEVFREQ_MSM_LLCCBW_DDR,
 	DEVFREQ_MAX
 };
 
