@@ -145,4 +145,11 @@ static __always_inline void add_page_to_lru_list_tail(struct page *page,
 	list_add_tail(&page->lru, &lruvec->lists[lru]);
 }
 
+static __always_inline void del_page_from_lru_list(struct page *page,
+				struct lruvec *lruvec)
+{
+	list_del(&page->lru);
+	update_lru_size(lruvec, page_lru(page), page_zonenum(page),
+			-hpage_nr_pages(page));
+}
 #endif
