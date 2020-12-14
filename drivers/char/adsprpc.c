@@ -1293,7 +1293,7 @@ static int context_build_overlap(struct smq_invoke_ctx *ctx)
 	int inbufs = REMOTE_SCALARS_INBUFS(ctx->sc);
 	int outbufs = REMOTE_SCALARS_OUTBUFS(ctx->sc);
 	int nbufs = inbufs + outbufs;
-	struct overlap max = { 0 };
+	struct overlap max;
 
 	for (i = 0; i < nbufs; ++i) {
 		ctx->overs[i].start = (uintptr_t)lpra[i].buf.pv;
@@ -4247,9 +4247,10 @@ static int fastrpc_internal_control(struct fastrpc_file *fl,
 		VERIFY(err, latency != 0);
 		if (err)
 			goto bail;
-		fl->pm_qos_req.cpus_affine = 0;
+		atomic_set(&fl->pm_qos_req.cpus_affine, 0);
 		for (i = 0; i < len; i++)
-			fl->pm_qos_req.cpus_affine |= BIT(me->silvercores.coreno[i]);
+			atomic_or(BIT(me->silvercores.coreno[i]),
+				  &fl->pm_qos_req.cpus_affine);
 		fl->pm_qos_req.type = PM_QOS_REQ_AFFINE_CORES;
 
 		if (!fl->qos_request) {
