@@ -582,7 +582,8 @@ static int msm_drm_init(struct device *dev, struct drm_driver *drv)
 		kthread_init_worker(&priv->disp_thread[i].worker);
 		priv->disp_thread[i].dev = ddev;
 		priv->disp_thread[i].thread =
-			kthread_run(kthread_worker_fn,
+			kthread_run_perf_critical(cpu_prime_mask,
+				kthread_worker_fn,
 				&priv->disp_thread[i].worker,
 				"crtc_commit:%d", priv->disp_thread[i].crtc_id);
 		ret = sched_setscheduler(priv->disp_thread[i].thread,
@@ -601,7 +602,8 @@ static int msm_drm_init(struct device *dev, struct drm_driver *drv)
 		kthread_init_worker(&priv->event_thread[i].worker);
 		priv->event_thread[i].dev = ddev;
 		priv->event_thread[i].thread =
-			kthread_run(kthread_worker_fn,
+			kthread_run_perf_critical(cpu_prime_mask,
+				kthread_worker_fn,
 				&priv->event_thread[i].worker,
 				"crtc_event:%d", priv->event_thread[i].crtc_id);
 		/**
@@ -641,6 +643,30 @@ static int msm_drm_init(struct device *dev, struct drm_driver *drv)
 			goto err_msm_uninit;
 		}
 	}
+
+
+
+	/**
+	 * Since pp interrupt is heavy weight, try to queue the work
+	 * into a dedicated worker thread, so that they dont interrupt
+	 * other important events.
+	 */
+	kthread_init_worker(&priv->pp_event_worker);
+	priv->pp_event_thread = kthread_run_perf_critical(cpu_prime_mask,
+			kthread_worker_fn, &priv->pp_event_worker, "pp_event");
+
+	ret = sched_setscheduler(priv->pp_event_thread,
+						SCHED_FIFO, &param);
+	if (ret)
+		pr_warn("pp_event thread priority update failed: %d\n",
+								ret);
+
+	if (IS_ERR(priv->pp_event_thread)) {
+		dev_err(dev, "failed to create pp_event kthread\n");
+		priv->pp_event_thread = NULL;
+		goto fail;
+	}
+
 
 	ret = drm_vblank_init(ddev, priv->num_crtcs);
 	if (ret < 0) {
