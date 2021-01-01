@@ -1,6 +1,10 @@
 // SPDX-License-Identifier: GPL-2.0
 /*
 
+
+ * Copyright (C) 2018-2021 Sultan Alsawaf <sultan@kerneltoast.com>.
+
+
  * Copyright (C) 2018-2021 Sultan Alsawaf <sultan@kerneltoast.com>.
 
  */
@@ -9,6 +13,7 @@
 
 #include <linux/devfreq_boost.h>
 
+
 #include <linux/input.h>
 #include <linux/kthread.h>
 #include <linux/msm_drm_notify.h>
@@ -16,6 +21,11 @@
 #include <linux/msm_drm_notify.h>
 #include <linux/input.h>
 #include <linux/kthread.h>
+
+
+#include <linux/input.h>
+#include <linux/kthread.h>
+#include <linux/msm_drm_notify.h>
 
 #include <linux/slab.h>
 #include <uapi/linux/sched/types.h>
@@ -58,11 +68,16 @@ static void devfreq_max_unboost(struct work_struct *work);
 
 static struct df_boost_drv df_boost_drv_g __read_mostly = {
 
+
 	BOOST_DEV_INIT(df_boost_drv_g, DEVFREQ_CPU_LLCC_DDR_BW,
 		       CONFIG_DEVFREQ_CPU_LLCC_DDR_BW_BOOST_FREQ)
 
 	BOOST_DEV_INIT(df_boost_drv_g, DEVFREQ_MSM_CPUBW,
 		       CONFIG_DEVFREQ_MSM_CPUBW_BOOST_FREQ)
+
+
+	BOOST_DEV_INIT(df_boost_drv_g, DEVFREQ_CPU_LLCC_DDR_BW,
+		       CONFIG_DEVFREQ_CPU_LLCC_DDR_BW_BOOST_FREQ)
 
 };
 
@@ -74,14 +89,20 @@ static void __devfreq_boost_kick(struct boost_dev *b)
 	set_bit(INPUT_BOOST, &b->state);
 	if (!mod_delayed_work(system_unbound_wq, &b->input_unboost,
 
+
+
+
 		msecs_to_jiffies(CONFIG_DEVFREQ_INPUT_BOOST_DURATION_MS))) {
 		/* Set the bit again in case we raced with the unboost worker */
 		set_bit(INPUT_BOOST, &b->state);
 		wake_up(&b->boost_waitq);
 	}
 
+
 		msecs_to_jiffies(CONFIG_DEVFREQ_INPUT_BOOST_DURATION_MS)))
 		wake_up(&b->boost_waitq);
+
+
 
 }
 
@@ -90,9 +111,13 @@ void devfreq_boost_kick(enum df_device device)
 	struct df_boost_drv *d = &df_boost_drv_g;
 
 
+
 	__devfreq_boost_kick(&d->devices[device]);
 
 	__devfreq_boost_kick(d->devices + device);
+
+
+	__devfreq_boost_kick(&d->devices[device]);
 
 }
 
@@ -100,17 +125,25 @@ static void __devfreq_boost_kick_max(struct boost_dev *b,
 				     unsigned int duration_ms)
 {
 
+
 	unsigned long boost_jiffies, curr_expires, new_expires;
 	unsigned long boost_jiffies = msecs_to_jiffies(duration_ms);
 	unsigned long curr_expires, new_expires;
+
+
+	unsigned long boost_jiffies, curr_expires, new_expires;
 
 
 	if (!READ_ONCE(b->df) || test_bit(SCREEN_OFF, &b->state))
 		return;
 
 
+
 	boost_jiffies = msecs_to_jiffies(duration_ms);
 
+
+
+	boost_jiffies = msecs_to_jiffies(duration_ms);
 
 	do {
 		curr_expires = atomic_long_read(&b->max_boost_expires);
@@ -125,14 +158,20 @@ static void __devfreq_boost_kick_max(struct boost_dev *b,
 	set_bit(MAX_BOOST, &b->state);
 	if (!mod_delayed_work(system_unbound_wq, &b->max_unboost,
 
+
+
+
 			      boost_jiffies)) {
 		/* Set the bit again in case we raced with the unboost worker */
 		set_bit(MAX_BOOST, &b->state);
 		wake_up(&b->boost_waitq);
 	}
 
+
 			      boost_jiffies))
 		wake_up(&b->boost_waitq);
+
+
 
 }
 
@@ -141,9 +180,13 @@ void devfreq_boost_kick_max(enum df_device device, unsigned int duration_ms)
 	struct df_boost_drv *d = &df_boost_drv_g;
 
 
+
 	__devfreq_boost_kick_max(&d->devices[device], duration_ms);
 
 	__devfreq_boost_kick_max(d->devices + device, duration_ms);
+
+
+	__devfreq_boost_kick_max(&d->devices[device], duration_ms);
 
 }
 
@@ -154,9 +197,13 @@ void devfreq_register_boost_device(enum df_device device, struct devfreq *df)
 
 	df->is_boost_device = true;
 
+
 	b = &d->devices[device];
 
 	b = d->devices + device;
+
+
+	b = &d->devices[device];
 
 	WRITE_ONCE(b->df, df);
 }
@@ -164,11 +211,17 @@ void devfreq_register_boost_device(enum df_device device, struct devfreq *df)
 static void devfreq_input_unboost(struct work_struct *work)
 {
 
+
 	struct boost_dev *b = container_of(to_delayed_work(work), typeof(*b),
 					   input_unboost);
 
 	struct boost_dev *b = container_of(to_delayed_work(work),
 					   typeof(*b), input_unboost);
+
+
+
+	struct boost_dev *b = container_of(to_delayed_work(work), typeof(*b),
+					   input_unboost);
 
 
 	clear_bit(INPUT_BOOST, &b->state);
@@ -178,11 +231,17 @@ static void devfreq_input_unboost(struct work_struct *work)
 static void devfreq_max_unboost(struct work_struct *work)
 {
 
+
 	struct boost_dev *b = container_of(to_delayed_work(work), typeof(*b),
 					   max_unboost);
 
 	struct boost_dev *b = container_of(to_delayed_work(work),
 					   typeof(*b), max_unboost);
+
+
+
+	struct boost_dev *b = container_of(to_delayed_work(work), typeof(*b),
+					   max_unboost);
 
 
 	clear_bit(MAX_BOOST, &b->state);
@@ -195,6 +254,9 @@ static void devfreq_update_boosts(struct boost_dev *b, unsigned long state)
 
 	mutex_lock(&df->lock);
 
+
+
+
 	if (state & BIT(SCREEN_OFF)) {
 		df->min_freq = df->profile->freq_table[0];
 		df->max_boost = false;
@@ -204,6 +266,7 @@ static void devfreq_update_boosts(struct boost_dev *b, unsigned long state)
 			       df->profile->freq_table[0];
 		df->max_boost = state & BIT(MAX_BOOST);
 
+
 	if (test_bit(SCREEN_OFF, &state)) {
 		df->min_freq = df->profile->freq_table[0];
 		df->max_boost = false;
@@ -212,6 +275,8 @@ static void devfreq_update_boosts(struct boost_dev *b, unsigned long state)
 			       min(b->boost_freq, df->max_freq) :
 			       df->profile->freq_table[0];
 		df->max_boost = test_bit(MAX_BOOST, &state);
+
+
 
 	}
 	update_devfreq(df);
@@ -233,9 +298,13 @@ static int devfreq_boost_thread(void *data)
 		unsigned long curr_state;
 
 
+
 		wait_event_interruptible(b->boost_waitq,
 
 		wait_event(b->boost_waitq,
+
+
+		wait_event_interruptible(b->boost_waitq,
 
 			(curr_state = READ_ONCE(b->state)) != old_state ||
 			(should_stop = kthread_should_stop()));
@@ -244,18 +313,27 @@ static int devfreq_boost_thread(void *data)
 			break;
 
 
+
+
+
 		if (old_state != curr_state) {
 			devfreq_update_boosts(b, curr_state);
 			old_state = curr_state;
 		}
 
+
 		old_state = curr_state;
 		devfreq_update_boosts(b, curr_state);
+
+
 
 	}
 
 	return 0;
 }
+
+
+
 
 
 static int msm_drm_notifier_cb(struct notifier_block *nb,
@@ -265,6 +343,7 @@ static int msm_drm_notifier_cb(struct notifier_block *nb,
 	int i, *blank = ((struct msm_drm_notifier *)data)->data;
 
 	/* Parse DRM blank events as soon as they occur */
+
 
 static int msm_drm_notifier_cb(struct notifier_block *nb, unsigned long action,
 			  void *data)
@@ -276,15 +355,22 @@ static int msm_drm_notifier_cb(struct notifier_block *nb, unsigned long action,
 
 	/* Parse framebuffer blank events as soon as they occur */
 
+
+
 	if (action != MSM_DRM_EARLY_EVENT_BLANK)
 		return NOTIFY_OK;
 
 	/* Boost when the screen turns on and unboost when it turns off */
 	for (i = 0; i < DEVFREQ_MAX; i++) {
 
+
 		struct boost_dev *b = &d->devices[i];
 
 		struct boost_dev *b = d->devices + i;
+
+
+
+		struct boost_dev *b = &d->devices[i];
 
 
 		if (*blank == MSM_DRM_BLANK_UNBLANK) {
@@ -309,9 +395,13 @@ static void devfreq_boost_input_event(struct input_handle *handle,
 
 	for (i = 0; i < DEVFREQ_MAX; i++)
 
+
 		__devfreq_boost_kick(&d->devices[i]);
 
 		__devfreq_boost_kick(d->devices + i);
+
+
+		__devfreq_boost_kick(&d->devices[i]);
 
 }
 
@@ -396,9 +486,14 @@ static int __init devfreq_boost_init(void)
 
 	for (i = 0; i < DEVFREQ_MAX; i++) {
 
+
 		struct boost_dev *b = &d->devices[i];
 
 		struct boost_dev *b = d->devices + i;
+
+
+
+		struct boost_dev *b = &d->devices[i];
 
 
 		thread[i] = kthread_run(devfreq_boost_thread, b,
@@ -422,9 +517,13 @@ static int __init devfreq_boost_init(void)
 	ret = msm_drm_register_client(&d->msm_drm_notif);
 	if (ret) {
 
+
 		pr_err("Failed to register msm_drm notifier, err: %d\n", ret);
 
 		pr_err("Failed to register fb notifier, err: %d\n", ret);
+
+
+		pr_err("Failed to register msm_drm notifier, err: %d\n", ret);
 
 		goto unregister_handler;
 	}
