@@ -49,6 +49,7 @@
 #define KGSL_PWR_SET_LIMIT 2
 
 
+
 /*
  * The effective duration of qos request in usecs at queue time.
  * After timeout, qos request is cancelled automatically.
@@ -61,6 +62,8 @@
  * After timeout, qos request is cancelled automatically.
  */
 #define KGSL_L2PC_WAKEUP_TIMEOUT (10 * 1000)
+
+
 
 
 
