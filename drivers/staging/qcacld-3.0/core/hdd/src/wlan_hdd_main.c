@@ -216,7 +216,29 @@ static unsigned int dev_num = 1;
 static struct cdev wlan_hdd_state_cdev;
 static struct class *class;
 static dev_t device;
+
 #ifndef MODULE
+
+#if defined (SEC_READ_MACADDR_SYSFS) || defined (SEC_WRITE_VERSION_IN_SYSFS) || defined (SEC_WRITE_SOFTAP_INFO_IN_SYSFS) || defined (SEC_CONFIG_PSM_SYSFS)
+void hdd_sysfs_update_driver_status(int32_t status);
+#endif /* SEC_READ_MACADDR_SYSFS || SEC_WRITE_VERSION_IN_SYSFS || SEC_WRITE_SOFTAP_INFO_IN_SYSFS || SEC_CONFIG_PSM_SYSFS */
+#ifdef SEC_CONFIG_PSM_SYSFS
+int wlan_hdd_sec_get_psm(void);
+#endif /* SEC_CONFIG_PSM_SYSFS */
+#ifdef SEC_WRITE_SOFTAP_INFO_IN_SYSFS
+#ifdef SEC_CONFIG_SUPPORT_MIMO
+static int sec_hw_dbs_capable = 1;
+#else //!SEC_CONFIG_SUPPORT_MIMO
+static int sec_hw_dbs_capable = 0;
+#endif //SEC_CONFIG_SUPPORT_MIMO
+static uint16_t sec_max_station = 0;
+#endif //SEC_WRITE_SOFTAP_INFO_IN_SYSFS
+#ifdef SEC_CONFIG_POWER_BACKOFF
+extern int cur_sec_sar_index;
+#endif /* SEC_CONFIG_POWER_BACKOFF */
+
+#if 0
+
 static struct gwlan_loader *wlan_loader;
 static ssize_t wlan_boot_cb(struct kobject *kobj,
 			    struct kobj_attribute *attr,
@@ -15966,7 +15988,23 @@ static void hdd_driver_unload(void)
 	hdd_qdf_deinit();
 }
 
+
 #ifndef MODULE
+
+#if defined (SEC_CONFIG_PSM_SYSFS)
+int wlan_hdd_sec_get_psm()
+{
+	int psm = 0;
+
+	psm = cnss_sysfs_get_pm_info();
+//	hdd_info("psm %d", psm);
+
+	return psm;
+}
+#endif /* SEC_CONFIG_PSM_SYSFS */
+
+#if 0
+
 /**
  * wlan_boot_cb() - Wlan boot callback
  * @kobj:      object whose directory we're creating the link in.
@@ -16092,7 +16130,6 @@ static int wlan_deinit_sysfs(void)
 
 #endif /* MODULE */
 
-#ifdef MODULE
 /**
  * hdd_module_init() - Module init helper
  *
@@ -16107,21 +16144,7 @@ static int hdd_module_init(void)
 
 	return 0;
 }
-#else
-static int __init hdd_module_init(void)
-{
-	int ret = -EINVAL;
 
-	ret = wlan_init_sysfs();
-	if (ret)
-		hdd_err("Failed to create sysfs entry");
-
-	return ret;
-}
-#endif
-
-
-#ifdef MODULE
 /**
  * hdd_module_exit() - Exit function
  *
@@ -16133,13 +16156,6 @@ static void __exit hdd_module_exit(void)
 {
 	hdd_driver_unload();
 }
-#else
-static void __exit hdd_module_exit(void)
-{
-	hdd_driver_unload();
-	wlan_deinit_sysfs();
-}
-#endif
 
 static int fwpath_changed_handler(const char *kmessage,
 				  const struct kernel_param *kp)
