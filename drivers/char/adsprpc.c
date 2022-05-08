@@ -4248,6 +4248,7 @@ static int fastrpc_internal_control(struct fastrpc_file *fl,
 		if (err)
 			goto bail;
 
+
 		fl->pm_qos_req.cpus_affine = 0;
 		for (i = 0; i < len; i++)
 			fl->pm_qos_req.cpus_affine |= BIT(me->silvercores.coreno[i]);
@@ -4256,6 +4257,11 @@ static int fastrpc_internal_control(struct fastrpc_file *fl,
 		for (i = 0; i < len; i++)
 			atomic_or(BIT(me->silvercores.coreno[i]),
 				  &fl->pm_qos_req.cpus_affine);
+
+
+		fl->pm_qos_req.cpus_affine = 0;
+		for (i = 0; i < len; i++)
+			fl->pm_qos_req.cpus_affine |= BIT(me->silvercores.coreno[i]);
 
 		fl->pm_qos_req.type = PM_QOS_REQ_AFFINE_CORES;
 
