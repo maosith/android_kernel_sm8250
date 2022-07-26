@@ -5580,8 +5580,18 @@ static int __init kgsl_core_init(void)
 	kgsl_driver.worker_thread = kthread_run(kthread_worker_fn,
 		&kgsl_driver.worker, "kgsl_worker_thread");
 
+
 	if (IS_ERR(kgsl_driver.worker_thread)) {
 		pr_err("kgsl: unable to start kgsl thread\n");
+
+	kthread_init_worker(&kgsl_driver.low_prio_worker);
+
+	kgsl_driver.low_prio_worker_thread = kthread_run_perf_critical(cpu_lp_mask,
+		kthread_worker_fn, &kgsl_driver.low_prio_worker, "kgsl_low_prio_worker_thread");
+
+	if (IS_ERR_VALUE(kgsl_driver.worker_thread) ||
+		IS_ERR_VALUE(kgsl_driver.low_prio_worker_thread))
+
 		goto err;
 	}
 
