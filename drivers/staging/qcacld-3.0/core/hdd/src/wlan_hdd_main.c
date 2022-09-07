@@ -15995,7 +15995,7 @@ static void hdd_driver_unload(void)
 #ifndef MODULE
 
 #if defined (SEC_CONFIG_PSM_SYSFS)
-int wlan_hdd_sec_get_psm()
+int wlan_hdd_sec_get_psm(void)
 {
 	int psm = 0;
 
