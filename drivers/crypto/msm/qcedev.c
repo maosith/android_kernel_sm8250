@@ -1930,11 +1930,6 @@ static inline long qcedev_ioctl(struct file *file,
 			err = -EFAULT;
 			goto exit_free_qcedev_areq;
 		}
-
-
-		}
-		}
-
 		break;
 
 	case QCEDEV_IOCTL_SHA_FINAL_REQ:
@@ -2027,11 +2022,6 @@ static inline long qcedev_ioctl(struct file *file,
 			err = -EFAULT;
 			goto exit_free_qcedev_areq;
 		}
-
-
-		}
-		}
-
 		break;
 
 	case QCEDEV_IOCTL_MAP_BUF_REQ:
