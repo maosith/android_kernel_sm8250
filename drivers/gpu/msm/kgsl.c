@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-only
 /*
  * Copyright (c) 2008-2021, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2022 Qualcomm Innovation Center, Inc. All rights reserved.
  */
 
 #include <uapi/linux/sched/types.h>
@@ -2509,7 +2510,7 @@ static long gpuobj_free_on_fence(struct kgsl_device_private *dev_priv,
 	}
 
 	handle = kgsl_sync_fence_async_wait(event.fd,
-		gpuobj_free_fence_func, entry, NULL);
+		gpuobj_free_fence_func, entry);
 
 	if (IS_ERR(handle)) {
 		kgsl_mem_entry_unset_pend(entry);
@@ -2658,6 +2659,15 @@ static int memdesc_sg_virt(struct kgsl_memdesc *memdesc, unsigned long useraddr)
 
 	ret = sg_alloc_table_from_pages(memdesc->sgt, pages, npages,
 					0, memdesc->size, GFP_KERNEL);
+
+	if (ret)
+		goto out;
+
+	ret = kgsl_cache_range_op(memdesc, 0, memdesc->size,
+			KGSL_CACHE_OP_FLUSH);
+
+	if (ret)
+		sg_free_table(memdesc->sgt);
 out:
 	if (ret) {
 		for (i = 0; i < npages; i++)
@@ -3718,7 +3728,7 @@ long kgsl_ioctl_gpuobj_alloc(struct kgsl_device_private *dev_priv,
 	debug_size = param->size >> 10;
 
 	if(debug_size > 200000) {
-		pr_err("kgsl: huge memory %lldKB is requested from pid = %d comm = %s\n", debug_size, private->pid, private->comm);
+		pr_err("kgsl: huge memory %lldKB is requested from pid = %d comm = %s\n", debug_size, pid_nr(private->pid), private->comm);
 	}
 #endif
 	entry = gpumem_alloc_entry(dev_priv, param->size, param->flags);
@@ -5386,7 +5396,7 @@ int kgsl_device_platform_probe(struct kgsl_device *device)
 #ifdef CONFIG_SMP
 #ifdef CONFIG_DISPLAY_SAMSUNG
 	device->pwrctrl.pm_qos_req_dma.type = PM_QOS_REQ_AFFINE_CORES;
-	device->pwrctrl.pm_qos_req_dma.cpus_affine = 0xf;
+	device->pwrctrl.pm_qos_req_dma.cpus_affine = BIT(0) | BIT(1) | BIT(2) | BIT(3);
 #else
 	device->pwrctrl.pm_qos_req_dma.type = PM_QOS_REQ_AFFINE_IRQ;
 	device->pwrctrl.pm_qos_req_dma.irq = device->pwrctrl.interrupt_num;
@@ -5498,18 +5508,6 @@ static void kgsl_core_exit(void)
 		ARRAY_SIZE(kgsl_driver.devp));
 }
 
-static long kgsl_run_one_worker(struct kthread_worker *worker,
-		struct task_struct **thread, const char *name)
-{
-	kthread_init_worker(worker);
-	*thread = kthread_run(kthread_worker_fn, worker, name);
-	if (IS_ERR(*thread)) {
-		pr_err("unable to start %s\n", name);
-		return PTR_ERR(thread);
-	}
-	return 0;
-}
-
 static int __init kgsl_core_init(void)
 {
 	int result = 0;
@@ -5583,15 +5581,10 @@ static int __init kgsl_core_init(void)
 
 	INIT_WORK(&kgsl_driver.mem_work, _flush_mem_workqueue);
 
-
 	kthread_init_worker(&kgsl_driver.worker);
 
 	kgsl_driver.worker_thread = kthread_run(kthread_worker_fn,
 		&kgsl_driver.worker, "kgsl_worker_thread");
-
-
-	if (IS_ERR(kgsl_driver.worker_thread)) {
-		pr_err("kgsl: unable to start kgsl thread\n");
 
 	kthread_init_worker(&kgsl_driver.low_prio_worker);
 
@@ -5600,15 +5593,6 @@ static int __init kgsl_core_init(void)
 
 	if (IS_ERR_VALUE(kgsl_driver.worker_thread) ||
 		IS_ERR_VALUE(kgsl_driver.low_prio_worker_thread))
-
-
-	if (IS_ERR_VALUE(kgsl_run_one_worker(&kgsl_driver.worker,
-			&kgsl_driver.worker_thread,
-			"kgsl_worker_thread")) ||
-		IS_ERR_VALUE(kgsl_run_one_worker(&kgsl_driver.low_prio_worker,
-			&kgsl_driver.low_prio_worker_thread,
-			"kgsl_low_prio_worker_thread")))
-
 		goto err;
 
 	sched_setscheduler(kgsl_driver.worker_thread, SCHED_FIFO, &param);
