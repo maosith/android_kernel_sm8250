@@ -137,22 +137,6 @@ struct cpuset {
 	int relax_domain_level;
 };
 
-
-
-
-static struct cpuset *display_cpuset;
-static bool need_hp;
-static struct work_struct dynamic_cpuset_work;
-
-#ifdef CONFIG_CPUSETS_ASSIST
-
-struct cs_target {
-	const char *name;
-	char *cpus;
-};
-#endif
-
-
 static inline struct cpuset *css_cs(struct cgroup_subsys_state *css)
 {
 	return css ? container_of(css, struct cpuset, css) : NULL;
@@ -2080,18 +2064,6 @@ static int cpuset_css_online(struct cgroup_subsys_state *css)
 	cpumask_copy(cs->effective_cpus, parent->cpus_allowed);
 	spin_unlock_irq(&callback_lock);
 out_unlock:
-
-
-	cgroup_name(css->cgroup, name_buf, sizeof(name_buf));
-
-	if (!strcmp(name_buf, "display"))
-		display_cpuset = cs;
-
-
-	if (!strncmp(name_buf, "display", 7))
-		display_cpuset = cs;
-
-
 	mutex_unlock(&cpuset_mutex);
 	put_online_cpus();
 	return 0;
@@ -2478,15 +2450,6 @@ void __init cpuset_init_smp(void)
 
 	cpuset_migrate_mm_wq = alloc_ordered_workqueue("cpuset_migrate_mm", 0);
 	BUG_ON(!cpuset_migrate_mm_wq);
-
-
-
-
-
-	
-
-	INIT_WORK(&dynamic_cpuset_work, dynamic_cpuset_worker);
-
 }
 
 /**
