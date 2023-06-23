@@ -2614,15 +2614,6 @@ int drm_mode_atomic_ioctl(struct drm_device *dev,
 		devfreq_boost_kick(DEVFREQ_MSM_LLCCBW_DDR);
 	}
 
-
-		
-	if (!(arg->flags & DRM_MODE_ATOMIC_TEST_ONLY) && time_before(jiffies, last_input_time + msecs_to_jiffies(3000))) {
-		cpu_input_boost_kick();
-		devfreq_boost_kick(DEVFREQ_MSM_CPU_LLCCBW);
-		devfreq_boost_kick(DEVFREQ_MSM_LLCCBW_DDR);
-	}
-
-
 	drm_modeset_acquire_init(&ctx, DRM_MODESET_ACQUIRE_INTERRUPTIBLE);
 
 	state = drm_atomic_state_alloc(dev);
