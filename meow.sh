@@ -1,6 +1,6 @@
 #!/bin/bash
 
-TC_PATH="$HOME/Clang-16.0.5/bin/"
+TC_PATH="/home/chanz22/toolchains/Clang-17.0.0-20230629/bin/"
 
 BUILD_ENV="CC=$(echo $TC_PATH)clang CLANG_TRIPLE=aarch64-linux-gnu- CROSS_COMPILE=$(echo $TC_PATH)aarch64-linux-gnu-"
 
