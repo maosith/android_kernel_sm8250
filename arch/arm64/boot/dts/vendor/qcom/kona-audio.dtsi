@@ -13,7 +13,7 @@
 		      <0x039f0010 0x4>;
 		reg-names = "avtimer_lsb_addr", "avtimer_msb_addr";
 		qcom,clk-div = <192>;
-		qcom,clk-mult = <10>;
+		qcom,clk-mult = <25>;
 	};
 };
 
